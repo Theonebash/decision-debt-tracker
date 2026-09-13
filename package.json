@@ -1,0 +1,27 @@
+{
+  "name": "decision-debt-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Desktop tracker for decisions that have been postponed.",
+  "main": "dist/main/main.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "allowScripts": [
+    "electron@44.3.0",
+    "esbuild@0.25.12"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.renderer.json && node scripts/build-renderer.js",
+    "start": "npm run build && electron .",
+    "test": "npm run build && tsc -p tsconfig.test.json && node --test \"dist-test/test/*.test.js\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.renderer.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "^44.3.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.0"
+  }
+}
