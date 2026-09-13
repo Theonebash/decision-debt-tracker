@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; form-action 'none'; base-uri 'none'">
+  <title>Decision Debt Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <div class="toolbar" role="toolbar" aria-label="Decision actions">
+      <button id="btn-new" class="btn btn-primary" type="button" data-command="new">New Decision</button>
+      <span class="toolbar-rule" aria-hidden="true"></span>
+      <button id="btn-edit" class="btn" type="button" data-command="edit" disabled>Edit</button>
+      <button id="btn-resolve" class="btn" type="button" data-command="resolve" disabled>Resolve&hellip;</button>
+      <button id="btn-delete" class="btn" type="button" data-command="delete" disabled>Delete</button>
+      <span class="toolbar-spacer"></span>
+      <span id="toolbar-note" class="toolbar-note"></span>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button id="tab-open" class="tab is-active" type="button" role="tab" aria-selected="true"
+              aria-controls="view-open" data-view="open">Open Decisions</button>
+      <button id="tab-summary" class="tab" type="button" role="tab" aria-selected="false"
+              aria-controls="view-summary" data-view="summary">Weekly Summary</button>
+    </nav>
+
+    <main class="content">
+
+      <section id="view-open" class="view view-open" role="tabpanel" aria-labelledby="tab-open">
+        <div class="list-pane">
+          <div class="filter-bar">
+            <label class="search-wrap">
+              <span class="visually-hidden">Search decisions</span>
+              <input id="search" class="search" type="search" placeholder="Search decisions"
+                     maxlength="200" autocomplete="off" spellcheck="false" aria-label="Search decisions">
+            </label>
+            <label class="toggle">
+              <input id="show-resolved" type="checkbox">
+              <span>Show resolved</span>
+            </label>
+          </div>
+
+          <div class="list-header">
+            <span class="col-rail"></span>
+            <button class="col col-title" type="button" data-sort="title">Decision<i class="sort-mark"></i></button>
+            <button class="col col-decay" type="button" data-sort="decay">Decay<i class="sort-mark"></i></button>
+            <button class="col col-review" type="button" data-sort="review">Review<i class="sort-mark"></i></button>
+            <span class="col col-due">Due</span>
+            <span class="col col-age">Age</span>
+          </div>
+
+          <div id="decision-list" class="list" role="listbox" tabindex="0" aria-label="Decisions"></div>
+          <div id="list-empty" class="placeholder" hidden></div>
+        </div>
+
+        <div id="splitter" class="splitter" role="separator" aria-orientation="vertical"
+             aria-label="Resize detail pane" tabindex="0"></div>
+
+        <aside id="detail" class="detail-pane" aria-label="Decision detail"></aside>
+      </section>
+
+      <section id="view-summary" class="view view-summary" role="tabpanel" aria-labelledby="tab-summary" hidden>
+      </section>
+
+    </main>
+
+    <footer class="status-bar">
+      <span id="status-counts" class="status-counts"></span>
+      <span class="status-spacer"></span>
+      <span id="status-note" class="status-note"></span>
+    </footer>
+  </div>
+
+  <div id="editor-dialog" class="backdrop" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+      <div class="dialog-head">
+        <h2 id="editor-title" class="dialog-title">New Decision</h2>
+        <p id="editor-note" class="dialog-note">Record a decision you are postponing.</p>
+      </div>
+
+      <form id="editor-form" class="dialog-body" novalidate>
+        <div class="field" data-field="title">
+          <label class="field-label" for="f-title">Title</label>
+          <input id="f-title" name="title" type="text" maxlength="120" autocomplete="off" spellcheck="false">
+          <p class="field-error"></p>
+        </div>
+
+        <div class="field" data-field="context">
+          <label class="field-label" for="f-context">Context</label>
+          <textarea id="f-context" name="context" rows="4" maxlength="2000"></textarea>
+          <p class="field-error"></p>
+        </div>
+
+        <div class="field-row">
+          <div class="field" data-field="people_involved">
+            <label class="field-label" for="f-people">People involved <span class="optional">optional</span></label>
+            <input id="f-people" name="people_involved" type="text" maxlength="300" autocomplete="off">
+            <p class="field-error"></p>
+          </div>
+
+          <div class="field" data-field="reason_delayed">
+            <label class="field-label" for="f-reason">Reason delayed <span class="optional">optional</span></label>
+            <input id="f-reason" name="reason_delayed" type="text" maxlength="1000" autocomplete="off">
+            <p class="field-error"></p>
+          </div>
+        </div>
+
+        <div class="field-row field-row-narrow">
+          <div class="field" data-field="review_date">
+            <label class="field-label" for="f-review-date">Review date</label>
+            <input id="f-review-date" name="review_date" type="date">
+            <p class="field-error"></p>
+          </div>
+
+          <div class="field" data-field="decay_level">
+            <label class="field-label" for="f-decay">Decay level</label>
+            <select id="f-decay" name="decay_level">
+              <option value="low">Low &mdash; delay is cheap</option>
+              <option value="medium">Medium &mdash; delay is costing us</option>
+              <option value="high">High &mdash; delay is expensive</option>
+            </select>
+            <p class="field-error"></p>
+          </div>
+        </div>
+      </form>
+
+      <div class="dialog-foot">
+        <button id="editor-cancel" class="btn" type="button">Cancel</button>
+        <button id="editor-save" class="btn btn-primary" type="submit" form="editor-form">Save Decision</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resolve-dialog" class="backdrop" hidden>
+    <div class="dialog dialog-narrow" role="dialog" aria-modal="true" aria-labelledby="resolve-title">
+      <div class="dialog-head">
+        <h2 id="resolve-title" class="dialog-title">Resolve Decision</h2>
+        <p id="resolve-note" class="dialog-note"></p>
+      </div>
+
+      <form id="resolve-form" class="dialog-body" novalidate>
+        <div class="field" data-field="outcome">
+          <label class="field-label" for="f-outcome">Outcome</label>
+          <textarea id="f-outcome" name="outcome" rows="5" maxlength="4000"></textarea>
+          <p class="field-hint">What was decided, and why. This is the record that outlives the delay.</p>
+          <p class="field-error"></p>
+        </div>
+
+        <div class="field field-inline" data-field="resolved_on">
+          <label class="field-label" for="f-resolved-on">Resolved on</label>
+          <input id="f-resolved-on" name="resolved_on" type="date">
+          <p class="field-error"></p>
+        </div>
+      </form>
+
+      <div class="dialog-foot">
+        <button id="resolve-cancel" class="btn" type="button">Cancel</button>
+        <button id="resolve-confirm" class="btn btn-primary" type="submit" form="resolve-form">Mark Resolved</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
